@@ -67,9 +67,15 @@ func getStartAndEnd(objectKey string) (start int64, end int64, isStart bool, err
 				isStart = true
 			}
 		}
+
 		// read timestamp from line
 		var timestampStr string
-		timestampStr, err = breader.ReadString('\t')
+		if lineType == "end\t" {
+			// if type is end, read until the line terminator
+			timestampStr, err = breader.ReadString('\n')
+		} else {
+			timestampStr, err = breader.ReadString('\t')
+		}
 		if err != nil {
 			return
 		}
@@ -86,10 +92,12 @@ func getStartAndEnd(objectKey string) (start int64, end int64, isStart bool, err
 		// update the last timestamp
 		end = timestamp
 
-		// skip the rest of the line
-		_, err = breader.ReadBytes('\n')
-		if err != nil {
-			return
+		if lineType != "end\t" {
+			// skip the rest of the line
+			_, err = breader.ReadBytes('\n')
+			if err != nil {
+				return
+			}
 		}
 	}
 }
